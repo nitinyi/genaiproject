@@ -1,0 +1,574 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Notewise – AI Study Assistant</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=Source+Sans+3:wght@400;600&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f3f6fb;
+      --surface: #fff;
+      --ink: #14213d;
+      --muted: #5a6682;
+      --line: #d9e0ee;
+      --accent: #2b59ff;
+      --accent-ink: #fff;
+      --mark: #ffe566;
+      --rule: #e6ebf6;
+      --margin: #f0a4a4;
+      --ok: #1a8a4a;
+      --okbg: #e3f5ea;
+      --no: #c2352b;
+      --nobg: #fde7e5;
+      --warn: #fff6cf;
+      --warnink: #5c4a00;
+      box-sizing: border-box;
+      padding-top: env(safe-area-inset-top, 0px);
+      padding-bottom: env(safe-area-inset-bottom, 0px)
+    }
+
+    @media (prefers-color-scheme:dark) {
+      :root:not([data-theme="light"]) {
+        color-scheme: dark;
+        --bg: #0e1424;
+        --surface: #161e33;
+        --ink: #e8ecf7;
+        --muted: #9aa6c4;
+        --line: #2a3555;
+        --accent: #7c9bff;
+        --accent-ink: #0e1424;
+        --mark: #5b4d00;
+        --rule: #1f2944;
+        --margin: #7a3b3b;
+        --ok: #6fd49a;
+        --okbg: #12301f;
+        --no: #ff8a80;
+        --nobg: #3a1a18;
+        --warn: #2e2a10;
+        --warnink: #f5e28a
+      }
+    }
+
+    :root[data-theme="dark"] {
+      color-scheme: dark;
+      --bg: #0e1424;
+      --surface: #161e33;
+      --ink: #e8ecf7;
+      --muted: #9aa6c4;
+      --line: #2a3555;
+      --accent: #7c9bff;
+      --accent-ink: #0e1424;
+      --mark: #5b4d00;
+      --rule: #1f2944;
+      --margin: #7a3b3b;
+      --ok: #6fd49a;
+      --okbg: #12301f;
+      --no: #ff8a80;
+      --nobg: #3a1a18;
+      --warn: #2e2a10;
+      --warnink: #f5e28a
+    }
+
+    html {
+      scroll-padding-top: env(safe-area-inset-top, 0px)
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font: 400 17px/1.6 "Source Sans 3", system-ui, -apple-system, "Segoe UI", sans-serif
+    }
+
+    h1,
+    h2,
+    h3,
+    .logo {
+      font-family: "Bricolage Grotesque", "Trebuchet MS", system-ui, sans-serif;
+      line-height: 1.15;
+      margin: 0
+    }
+
+    .wrap {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 20px 18px 40px
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 22px
+    }
+
+    .logo {
+      font-size: 1.5rem;
+      font-weight: 800;
+      background: linear-gradient(transparent 58%, var(--mark) 58%);
+      padding: 0 4px
+    }
+
+    h1 {
+      font-size: clamp(1.7rem, 4.5vw, 2.6rem);
+      font-weight: 800;
+      max-width: 20ch;
+      margin-bottom: 8px
+    }
+
+    .sub {
+      color: var(--muted);
+      max-width: 60ch;
+      margin: 0 0 20px
+    }
+
+    .notice {
+      background: var(--warn);
+      color: var(--warnink);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: .95rem;
+      margin-bottom: 20px
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      align-items: start
+    }
+
+    @media (max-width:820px) {
+      .grid {
+        grid-template-columns: 1fr
+      }
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px
+    }
+
+    .panel h2 {
+      font-size: 1.15rem;
+      margin-bottom: 10px
+    }
+
+    label {
+      display: block;
+      font-weight: 600;
+      font-size: .92rem;
+      margin: 12px 0 4px
+    }
+
+    input[type=text],
+    select {
+      width: 100%;
+      padding: 9px 11px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--bg);
+      color: var(--ink);
+      font: inherit
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 300px;
+      resize: vertical;
+      padding: 10px 12px 10px 20px;
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--margin);
+      border-radius: 8px;
+      color: var(--ink);
+      font: inherit;
+      line-height: 28px;
+      background-color: var(--surface);
+      background-image: repeating-linear-gradient(transparent, transparent 27px, var(--rule) 27px, var(--rule) 28px);
+      background-attachment: local
+    }
+
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px
+    }
+
+    .row>* {
+      flex: 1 1 140px
+    }
+
+    .tabs {
+      display: flex;
+      gap: 6px;
+      margin: 4px 0 8px
+    }
+
+    .tab {
+      flex: 1;
+      padding: 9px;
+      border: 1px solid var(--line);
+      background: var(--bg);
+      color: var(--ink);
+      border-radius: 8px;
+      font-family: inherit;
+      font-weight: 600;
+      font-size: .95rem;
+      cursor: pointer
+    }
+
+    .tab[aria-selected=true] {
+      background: var(--accent);
+      color: var(--accent-ink);
+      border-color: var(--accent)
+    }
+
+    .btn {
+      padding: 11px 18px;
+      border: 0;
+      border-radius: 9px;
+      background: var(--accent);
+      color: var(--accent-ink);
+      font-family: inherit;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer
+    }
+
+    .btn.ghost {
+      background: transparent;
+      color: var(--ink);
+      border: 1px solid var(--line)
+    }
+
+    .btn:disabled {
+      opacity: .55;
+      cursor: progress
+    }
+
+    :focus-visible {
+      outline: 3px solid var(--accent);
+      outline-offset: 2px
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 14px
+    }
+
+    #out {
+      min-height: 200px
+    }
+
+    #out h3 {
+      font-size: 1.05rem;
+      margin: 16px 0 4px
+    }
+
+    #out p {
+      margin: 6px 0
+    }
+
+    #out ul {
+      margin: 6px 0;
+      padding-left: 22px
+    }
+
+    .empty,
+    .status {
+      color: var(--muted)
+    }
+
+    .err {
+      background: var(--nobg);
+      color: var(--no);
+      padding: 10px 12px;
+      border-radius: 8px
+    }
+
+    .q {
+      border-top: 1px solid var(--line);
+      padding: 12px 0
+    }
+
+    .q:first-of-type {
+      border-top: 0
+    }
+
+    .qt {
+      font-weight: 600;
+      margin: 0 0 8px
+    }
+
+    .opt {
+      display: block;
+      width: 100%;
+      text-align: left;
+      margin: 6px 0;
+      padding: 9px 12px;
+      border: 1px solid var(--line);
+      background: var(--bg);
+      color: var(--ink);
+      border-radius: 8px;
+      font: inherit;
+      cursor: pointer
+    }
+
+    .opt.ok {
+      background: var(--okbg);
+      border-color: var(--ok);
+      color: var(--ok)
+    }
+
+    .opt.no {
+      background: var(--nobg);
+      border-color: var(--no);
+      color: var(--no)
+    }
+
+    .ex {
+      margin: 8px 0 0;
+      padding: 8px 12px;
+      border-left: 3px solid var(--accent);
+      background: var(--bg);
+      border-radius: 4px;
+      font-size: .95rem
+    }
+
+    .score {
+      font-weight: 600;
+      margin: 0 0 6px
+    }
+
+    .verify {
+      margin-top: 16px;
+      padding-top: 10px;
+      border-top: 1px dashed var(--line);
+      color: var(--muted);
+      font-size: .9rem
+    }
+
+    footer {
+      margin-top: 30px;
+      color: var(--muted);
+      font-size: .9rem
+    }
+
+    @media (prefers-reduced-motion:no-preference) {
+
+      .btn,
+      .opt,
+      .tab {
+        transition: background .15s, border-color .15s
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <header><span class="logo">Notewise</span><button class="btn ghost" id="theme" type="button"
+        aria-label="Switch light or dark theme">Theme</button></header>
+    <h1>Turn your class notes into something you can study.</h1>
+    <p class="sub">Paste your notes, then get a plain-language explanation or a set of practice questions built only
+      from what you pasted.</p>
+    <div class="notice" role="note">AI can make mistakes. Always check explanations and answers against your textbook,
+      lecture slides or teacher before you rely on them.</div>
+
+    <div class="grid">
+      <section class="panel" aria-labelledby="h-in">
+        <h2 id="h-in">Your notes</h2>
+        <label for="topic">Topic (optional)</label>
+        <input type="text" id="topic" maxlength="80" placeholder="For example: Photosynthesis">
+        <label for="notes">Paste notes here</label>
+        <textarea id="notes" placeholder="Paste or type your notes. A few paragraphs work best."></textarea>
+        <div class="tabs" role="tablist" aria-label="What do you want?">
+          <button class="tab" role="tab" id="t-explain" aria-selected="true" type="button">Explain simply</button>
+          <button class="tab" role="tab" id="t-quiz" aria-selected="false" type="button">Practice questions</button>
+        </div>
+        <div class="row">
+          <div><label for="level">Explanation level</label><select id="level">
+              <option>Beginner</option>
+              <option>Intermediate</option>
+              <option>Exam revision</option>
+            </select></div>
+          <div id="qopts" hidden><label for="qtype">Question type</label><select id="qtype">
+              <option value="mcq">Multiple choice</option>
+              <option value="short">Short answer</option>
+            </select></div>
+          <div id="qcount" hidden><label for="n">How many</label><select id="n">
+              <option>3</option>
+              <option selected>5</option>
+              <option>8</option>
+            </select></div>
+        </div>
+        <div class="actions">
+          <button class="btn" id="go" type="button">Explain my notes</button>
+          <button class="btn ghost" id="demo" type="button">Try sample notes</button>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="h-out">
+        <h2 id="h-out">Result</h2>
+        <div id="out" aria-live="polite">
+          <p class="empty">Your explanation or questions will appear here.</p>
+        </div>
+      </section>
+    </div>
+
+    <footer>Built by Group 12 (Tanishq Kumar Nishad, Nitin Yadav, Soummadeep Goswami) for Generative AI for Development,
+      CSE2591, IILM University, Gurugram. Your notes are sent only to generate your result and are not stored.</footer>
+  </div>
+
+  <script>
+    const $ = s => document.querySelector(s);
+    const out = $('#out');
+    let mode = 'explain', ctl = null;
+    const SAMPLE = 'Photosynthesis is the process by which green plants make food using sunlight. It happens in the chloroplasts, which contain chlorophyll, the green pigment that absorbs light energy. The plant takes in carbon dioxide through tiny pores called stomata and absorbs water through the roots. Using light energy, these are converted into glucose and oxygen. The overall equation is 6CO2 + 6H2O + light energy -> C6H12O6 + 6O2. The light-dependent reactions occur in the thylakoid membranes and produce ATP and NADPH, while the Calvin cycle occurs in the stroma and uses ATP and NADPH to build glucose. Oxygen is released as a by-product.';
+
+    /* =====================================================
+       PUT YOUR GOOGLE (GEMINI) API KEY HERE
+       Free key: https://aistudio.google.com/apikey
+       ===================================================== */
+    const API_KEY = 'YOUR_API_KEY_HERE';
+    const MODEL = 'gemini-2.5-flash';
+
+    async function callClaude(prompt, { signal, onText } = {}) {
+      const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/' + MODEL + ':generateContent?key=' + encodeURIComponent(API_KEY), {
+        method: 'POST', signal,
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+      });
+      if (!res.ok) {
+        const e = new Error('http ' + res.status);
+        e.code = (res.status === 400 || res.status === 401 || res.status === 403) ? 'bad_key' : res.status === 429 ? 'rate_limited' : 'http';
+        throw e;
+      }
+      const d = await res.json();
+      const text = ((d.candidates && d.candidates[0] && d.candidates[0].content && d.candidates[0].content.parts) || []).map(p => p.text || '').join('');
+      if (onText) onText(text);
+      return text;
+    }
+
+    const esc = t => t.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+    function md(t) {
+      let h = '', inl = false;
+      for (const l of esc(t).split('\n')) {
+        const x = l.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+        if (/^\s*[-*] /.test(l)) { if (!inl) { h += '<ul>'; inl = true } h += '<li>' + x.replace(/^\s*[-*] /, '') + '</li>'; continue }
+        if (inl) { h += '</ul>'; inl = false }
+        if (/^#{1,3} /.test(l)) h += '<h3>' + x.replace(/^#{1,3} /, '') + '</h3>';
+        else if (l.trim()) h += '<p>' + x + '</p>';
+      }
+      return h + (inl ? '</ul>' : '');
+    }
+    const VERIFY = '<p class="verify">Check this against your course material before you rely on it. If something looks wrong or is missing from your notes, trust your teacher and textbook.</p>';
+    function showErr(m) { out.innerHTML = '<p class="err"></p>'; out.firstChild.textContent = m }
+    function errText(e) {
+      if (e && e.code === 'bad_key') return 'The API key was rejected. Check the API_KEY value in the code and try again.';
+      if (e && e.code === 'rate_limited') return 'Too many requests right now. Wait a minute and try again.';
+      if (e && e.name === 'AbortError') return 'Stopped.';
+      return 'Something went wrong while generating. Check your connection and try again.';
+    }
+
+    function setMode(m) {
+      mode = m;
+      $('#t-explain').setAttribute('aria-selected', m === 'explain');
+      $('#t-quiz').setAttribute('aria-selected', m === 'quiz');
+      $('#level').closest('div').hidden = m !== 'explain';
+      $('#qopts').hidden = $('#qcount').hidden = m !== 'quiz';
+      $('#go').textContent = m === 'explain' ? 'Explain my notes' : 'Make practice questions';
+    }
+    $('#t-explain').onclick = () => setMode('explain');
+    $('#t-quiz').onclick = () => setMode('quiz');
+    $('#demo').onclick = () => { $('#notes').value = SAMPLE; $('#topic').value = 'Photosynthesis' };
+
+    const RULES = 'You are a careful study assistant for school and college students. Use ONLY the student\u2019s notes as your source. Do not add facts that are not in the notes. If the notes are unclear or incomplete, say so plainly instead of guessing.';
+
+    async function run() {
+      const notes = $('#notes').value.trim(), topic = $('#topic').value.trim();
+      if (notes.length < 40) { showErr('Add a few sentences of notes first, or choose Try sample notes.'); return }
+      if (!API_KEY || API_KEY === 'PASTE_YOUR_API_KEY_HERE') { showErr('No API key set. Open the HTML file and paste your key into API_KEY near the top of the script.'); return }
+      if (ctl) ctl.abort(); ctl = new AbortController();
+      const btn = $('#go'); btn.disabled = true; out.innerHTML = '<p class="status">Working on it…</p>';
+      const ctx = 'Topic: ' + (topic || 'not given') + '\n\nStudent notes:\n"""\n' + notes.slice(0, 8000) + '\n"""';
+      try {
+        if (mode === 'explain') {
+          const p = RULES + '\nExplain the notes at this level: ' + $('#level').value + '. Use simple everyday words and one short analogy if it helps. Format with short markdown: ## headings, - bullets, **bold** for key terms. Sections: ## In one line, ## Explained simply, ## Key terms, ## Check yourself (two questions the student can answer from the notes). Keep it under 300 words.\n\n' + ctx;
+          await callClaude(p, { signal: ctl.signal, onText: t => { out.innerHTML = md(t) } });
+          out.insertAdjacentHTML('beforeend', VERIFY);
+        } else {
+          const n = +$('#n').value, type = $('#qtype').value;
+          const shape = type === 'mcq' ? '{"q":string,"options":[4 short strings],"answer":index 0-3 of the correct option,"explanation":one sentence pointing to the idea in the notes}' : '{"q":string,"a":a model answer in 1-3 sentences taken from the notes}';
+          const p = RULES + '\nWrite ' + n + ' practice questions that test understanding of the notes. Return ONLY a JSON array, no other text, of objects shaped like ' + shape + '.\n\n' + ctx;
+          let items = await callClaude(p, { signal: ctl.signal });
+          if (typeof items === 'string') {
+            let s = items.replace(/```json|```/g, '').trim();
+            const i0 = s.indexOf('['), i1 = s.lastIndexOf(']');
+            if (i0 >= 0 && i1 > i0) s = s.slice(i0, i1 + 1);
+            try { items = JSON.parse(s) } catch (e) { items = null }
+          }
+          if (!Array.isArray(items)) items = items && items.questions;
+          if (type === 'mcq') (items || []).forEach(i => { if (i && typeof i.answer === 'string' && i.answer.trim() !== '' && !isNaN(i.answer)) i.answer = +i.answer });
+          items = (items || []).filter(i => i && i.q && (type === 'mcq' ? Array.isArray(i.options) && i.options.length > 1 && Number.isInteger(i.answer) && i.options[i.answer] !== undefined : i.a));
+          if (!items.length) throw new Error('empty');
+          renderQuiz(items, type);
+        }
+      } catch (e) { showErr(errText(e)) }
+      finally { btn.disabled = false }
+    }
+    $('#go').onclick = run;
+
+    function renderQuiz(items, type) {
+      out.innerHTML = '';
+      const sc = document.createElement('p'); sc.className = 'score'; out.append(sc);
+      let score = 0, done = 0;
+      const upd = () => { sc.textContent = type === 'mcq' ? 'Score: ' + score + ' of ' + done + ' answered' : items.length + ' questions. Try each one before revealing the answer.' };
+      upd();
+      items.forEach((it, i) => {
+        const d = document.createElement('div'); d.className = 'q';
+        const p = document.createElement('p'); p.className = 'qt'; p.textContent = (i + 1) + '. ' + it.q; d.append(p);
+        const ex = document.createElement('p'); ex.className = 'ex'; ex.hidden = true;
+        if (type === 'mcq') {
+          const bs = it.options.map((o, j) => {
+            const b = document.createElement('button'); b.type = 'button'; b.className = 'opt'; b.textContent = o;
+            b.onclick = () => {
+              if (d.dataset.done) return; d.dataset.done = 1; done++;
+              if (j === it.answer) { score++; b.classList.add('ok') } else { b.classList.add('no'); bs[it.answer].classList.add('ok') }
+              ex.textContent = it.explanation || ''; ex.hidden = !it.explanation; upd();
+            };
+            d.append(b); return b;
+          });
+        } else {
+          const r = document.createElement('button'); r.type = 'button'; r.className = 'btn ghost'; r.textContent = 'Show model answer';
+          r.onclick = () => { ex.textContent = it.a; ex.hidden = false; r.hidden = true };
+          d.append(r);
+        }
+        d.append(ex); out.append(d);
+      });
+      out.insertAdjacentHTML('beforeend', VERIFY);
+    }
+
+    $('#theme').onclick = () => {
+      const r = document.documentElement, dark = matchMedia('(prefers-color-scheme: dark)').matches;
+      const cur = r.dataset.theme || (dark ? 'dark' : 'light');
+      r.dataset.theme = cur === 'dark' ? 'light' : 'dark';
+    };
+    setMode('explain');
+  </script>
+</body>
+
+</html>
